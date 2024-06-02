@@ -19,7 +19,7 @@ void analyze_file(char *filepath) {
         return;
     }
 
-    printf("Analyzing file: %s\n", filepath); // 현재 파일명 출력
+    printf("\tAnalyzing file: %s\n", filepath); // 현재 파일명 출력
 
     char line[MAX_LINE];
     char code[MAX_CODE] = "";
@@ -38,16 +38,16 @@ void analyze_file(char *filepath) {
     analyze_code(code, line_number, filepath);  // 파일 전체 내용을 분석
 
     // 파일 분석 후 unresolved issues 출력
-    printf("Issues found in file: %s\n\n", filepath);
-    printf("%d\n", issue_count);
+    printf("\tIssues found in file: %s\n", filepath);
+    printf("\t%d\n", issue_count);
     for (int i = 0; i < issue_count; i++) {
         if (!issues[i].resolved) {
-            printf("Unresolved Issue: Variable: %s, Violation: %s\n",
+            printf("\tUnresolved Issue:\n\t\tVariable: %s,\n\t\tViolation: %s\n",
                    issues[i].variable_name,
                    violation_strings[issues[i].violation]);
         }
         else {
-            printf("there isn't security issues.\nIssue: Variable: %s, Violation: %s\n",
+            printf("\tSolved Issue:\n\t\tVariable: %s,\n\t\tViolation: %s\n",
                    issues[i].variable_name,
                    violation_strings[issues[i].violation]);
         }
