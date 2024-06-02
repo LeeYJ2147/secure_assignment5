@@ -1,4 +1,4 @@
-const fs = require('fs');
+{const fs = require('fs');
 const path = require('path');
 const userInput = "userInput.txt";
 const safePath = path.resolve(__dirname, userInput);
@@ -8,4 +8,4 @@ fs.readFile(safePath, 'utf8', (err, data) => {
         return;
     }
     console.log(data);
-});
+});}

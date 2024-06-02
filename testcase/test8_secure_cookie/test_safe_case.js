@@ -1,1 +1,1 @@
-document.cookie = "sessionId=abc123; path=/; Secure; HttpOnly";
+{document.cookie = "sessionId=abc123; path=/; Secure; HttpOnly";}

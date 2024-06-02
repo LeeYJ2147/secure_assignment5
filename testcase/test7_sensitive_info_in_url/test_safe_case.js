@@ -1,4 +1,4 @@
-const userPassword = "password123";
+{const userPassword = "password123";
 fetch("https://example.com/api", {
     method: "POST",
     headers: {
@@ -7,4 +7,4 @@ fetch("https://example.com/api", {
     body: JSON.stringify({ password: userPassword })
 })
     .then(response => response.json())
-    .then(data => console.log(data));
+    .then(data => console.log(data));}

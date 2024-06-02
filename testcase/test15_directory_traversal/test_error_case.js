@@ -1,4 +1,4 @@
-const fs = require('fs');
+{const fs = require('fs');
 const userInput = "../etc/passwd";
 fs.readFile(userInput, 'utf8', (err, data) => {
     if (err) {
@@ -6,4 +6,4 @@ fs.readFile(userInput, 'utf8', (err, data) => {
         return;
     }
     console.log(data);
-});
+});}

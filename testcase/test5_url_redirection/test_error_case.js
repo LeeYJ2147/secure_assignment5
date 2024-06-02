@@ -1,2 +1,2 @@
-const userInput = "http://malicious.com";
-window.location.href = userInput;
+{const userInput = "http://malicious.com";
+window.location.href = userInput;}
