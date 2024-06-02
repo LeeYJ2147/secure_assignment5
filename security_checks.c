@@ -10,26 +10,26 @@ Variable variables[MAX_VIOLATIONS];
 int variable_count = 0;
 
 const char *violation_strings[] = {
-    "SQL Injection",
-    "XSS",
-    "Information Leakage",
-    "Frame Injection",
-    "URL Redirection",
-    "Missing Session Timeout",
-    "Sensitive Information in URL",
-    "Secure Cookie",
-    "Cross Frame Scripting",
-    "Sensitive Information Display",
-    "Sensitive Information Cached",
-    "Encryption Strength",
-    "CRLF Injection",
-    "Trust Boundary Violation",
-    "Directory Traversal",
-    "Session Fixation",
-    "Risky Cryptographic Algorithm",
-    "Credentials Management",
-    "SQL Injection Hibernate",
-    "Improper Resource Shutdown"
+    "SQL injection",
+    "XSS (cross-site scripting)",
+    "Information leakage",
+    "Frame injection",
+    "URL redirection",
+    "Missing session timeout",
+    "Sensitive information in URL",
+    "Secure cookie",
+    "Cross frame scripting",
+    "Sensitive information display",
+    "Sensitive information cached",
+    "Encryption strength",
+    "CRLF injection",
+    "Trust boundary violation",
+    "Directory traversal",
+    "Session fixation",
+    "Risky cryptographic algorithm",
+    "Credentials management",
+    "SQL injection hibernate",
+    "Improper resource shutdown"
 };
 
 void add_variable(const char *name) {
