@@ -1,0 +1,1 @@
+document.cookie = "sessionId=abc123; path=/";
