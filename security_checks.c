@@ -10,26 +10,26 @@ Variable variables[MAX_VIOLATIONS];
 int variable_count = 0;
 
 const char *violation_strings[] = {
-    "SQL Injection",
+    "SQL injection",
     "XSS",
-    "Information Leakage",
-    "Frame Injection",
-    "URL Redirection",
-    "Missing Session Timeout",
-    "Sensitive Information in URL",
-    "Secure Cookie",
-    "Cross Frame Scripting",
-    "Sensitive Information Display",
-    "Sensitive Information Cached",
-    "Encryption Strength",
-    "CRLF Injection",
-    "Trust Boundary Violation",
-    "Directory Traversal",
-    "Session Fixation",
-    "Risky Cryptographic Algorithm",
-    "Credentials Management",
-    "SQL Injection Hibernate",
-    "Improper Resource Shutdown"
+    "Information leakage",
+    "Frame injection",
+    "URL redirection",
+    "Missing session timeout",
+    "Sensitive information in URL",
+    "Secure cookie",
+    "Cross frame scripting",
+    "Sensitive information display",
+    "Sensitive information cached",
+    "Encryption strength",
+    "CRLF injection",
+    "Trust boundary violation",
+    "Directory traversal",
+    "Session fixation",
+    "Risky cryptographic algorithm",
+    "Credentials management",
+    "SQL injection hibernate",
+    "Improper resource shutdown"
 };
 
 void add_variable(const char *name) {
@@ -91,7 +91,6 @@ void check_sql_injection(char *code, const char *variable_name) {
     }
 }
 
-
 void check_xss(char *code, const char *variable_name) {
     if (strstr(code, "document.write") || strstr(code, "innerHTML") || strstr(code, "outerHTML") || strstr(code, "eval")) {
         if (strstr(code, "input") || strstr(code, "Input")) {
@@ -103,7 +102,6 @@ void check_xss(char *code, const char *variable_name) {
         }
     }
 }
-
 
 void check_information_leakage(char *code, const char *variable_name) {
     if (strstr(code, "print") || strstr(code, "echo") || strstr(code, "console.log") || strstr(code, "logger.info")) {
@@ -117,7 +115,6 @@ void check_information_leakage(char *code, const char *variable_name) {
     }
 }
 
-
 void check_frame_injection(char *code, const char *variable_name) {
     if (strstr(code, "<iframe") || strstr(code, "<frame")) {
         if (strstr(code, "src=") && (strstr(code, "http://") || strstr(code, "https://"))) {
@@ -127,7 +124,6 @@ void check_frame_injection(char *code, const char *variable_name) {
         }
     }
 }
-
 
 void check_url_redirection(char *code, const char *variable_name) {
     if (strstr(code, "location.href") || strstr(code, "window.location") || strstr(code, "response.sendRedirect")) {
@@ -139,17 +135,15 @@ void check_url_redirection(char *code, const char *variable_name) {
     }
 }
 
-
 void check_missing_session_timeout(char *code, const char *variable_name) {
     if (strstr(code, "session")) {
-        if (!(strstr(code, "timeout") || strstr(code, "expire") || strstr(code, "expiration"))) {
+        if (!(strstr(code, "timeout") || strstr(code, "expire") || strstr(code, "expiration")) || strstr(code, "maxAge")) {
             add_issue(variable_name, MISSING_SESSION_TIMEOUT, 0);
         } else {
             add_issue(variable_name, MISSING_SESSION_TIMEOUT, 1);
         }
     }
 }
-
 
 void check_sensitive_info_in_url(char *code, const char *variable_name) {
     if (strstr(code, "GET") || strstr(code, "POST")) {
@@ -158,7 +152,6 @@ void check_sensitive_info_in_url(char *code, const char *variable_name) {
         }
     }
 }
-
 
 void check_secure_cookie(char *code, const char *variable_name) {
     if (strstr(code, "Set-Cookie")) {
@@ -169,7 +162,6 @@ void check_secure_cookie(char *code, const char *variable_name) {
         }
     }
 }
-
 
 void check_cross_frame_scripting(char *code, const char *variable_name) {
     if (strstr(code, "<iframe") || strstr(code, "<frame")) {
@@ -191,13 +183,15 @@ void check_sensitive_info_display(char *code, const char *variable_name) {
     }
 }
 
-
 void check_sensitive_info_cached(char *code, const char *variable_name) {
-    if (strstr(code, "cache") && (strstr(code, "password") || strstr(code, "secret") || strstr(code, "apikey") || strstr(code, "token"))) {
-        add_issue(variable_name, SENSITIVE_INFO_CACHED, 0);
-    } else if (!(strstr(code, "password") || strstr(code, "secret") || strstr(code, "apikey") || strstr(code, "token"))) {
-        //mark_variable_secure(variable_name);
-        add_issue(variable_name, SENSITIVE_INFO_CACHED, 1);
+    if (strstr(code, "cache") || strstr(code, "localStorage")) {
+        if(strstr(code, "password") || strstr(code, "secret") || strstr(code, "apikey") || strstr(code, "token")) {
+            if(strstr(code, "masked") || strstr(code, "replace")) {
+                add_issue(variable_name, SENSITIVE_INFO_CACHED, 1);
+            } else {
+                add_issue(variable_name, SENSITIVE_INFO_CACHED, 0);
+            }
+        }
     }
 }
 
