@@ -22,7 +22,7 @@ void analyze_file(char *filepath) {
     printf("\tAnalyzing file: %s\n", filepath); // 현재 파일명 출력
 
     char line[MAX_LINE];
-    char code[MAX_CODE] = "";
+    char code[MAX_CODE*10] = "";
     int line_number = 0;
 
     issue_count = 0;  // 파일 분석 시작 전에 issues 초기화
@@ -34,24 +34,21 @@ void analyze_file(char *filepath) {
     }
 
     fclose(file);
-
+    //printf("%s\n", code);
     analyze_code(code, line_number, filepath);  // 파일 전체 내용을 분석
 
     // 파일 분석 후 unresolved issues 출력
     printf("\tIssues found in file: %s\n", filepath);
-    printf("\t%d\n", issue_count);
+    int is_all_cleared = 1;
     for (int i = 0; i < issue_count; i++) {
         if (!issues[i].resolved) {
             printf("\tUnresolved Issue:\n\t\tVariable: %s,\n\t\tViolation: %s\n",
                    issues[i].variable_name,
                    violation_strings[issues[i].violation]);
-        }
-        else {
-            printf("\tSolved Issue:\n\t\tVariable: %s,\n\t\tViolation: %s\n",
-                   issues[i].variable_name,
-                   violation_strings[issues[i].violation]);
+            is_all_cleared = 0;
         }
     }
+    if(is_all_cleared) printf("\t\tIssues Nothing... Good!!\n");
 }
 
 void analyze_directory(const char *path) {
