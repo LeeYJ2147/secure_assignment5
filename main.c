@@ -42,7 +42,7 @@ void analyze_file(char *filepath) {
     int is_all_cleared = 1;
     for (int i = 0; i < issue_count; i++) {
         if (!issues[i].resolved) {
-            printf("\tUnresolved Issue:\n\t\tVariable: %s,\n\t\tViolation: %s\n",
+            printf("\t\tUnresolved Issue:\n\t\t\tVariable: %s,\n\t\t\tViolation: %s\n",
                    issues[i].variable_name,
                    violation_strings[issues[i].violation]);
             is_all_cleared = 0;
