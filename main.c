@@ -38,17 +38,21 @@ void analyze_file(char *filepath) {
     analyze_code(code, line_number, filepath);  // 파일 전체 내용을 분석
 
     // 파일 분석 후 unresolved issues 출력
-    printf("\tIssues found in file: %s\n", filepath);
     int is_all_cleared = 1;
     for (int i = 0; i < issue_count; i++) {
         if (!issues[i].resolved) {
-            printf("\t\tUnresolved Issue:\n\t\t\tVariable: %s,\n\t\t\tViolation: %s\n",
-                   issues[i].variable_name,
-                   violation_strings[issues[i].violation]);
-            is_all_cleared = 0;
+            if (is_all_cleared) {
+                printf("\t\t❌ Issues found in file: %s\n", filepath);
+                is_all_cleared = 0;
+            }
+            printf("\t\t- Unresolved issue:\n\t\t\tvariable: %s,\n\t\t\tviolation: %s\n",
+                issues[i].variable_name,
+                violation_strings[issues[i].violation]);
         }
     }
-    if(is_all_cleared) printf("\t\tIssues Nothing... Good!!\n");
+    if (is_all_cleared) {
+        printf("\t\t✅ No issues found in file: %s... Good!!\n", filepath);
+    }
 }
 
 void analyze_directory(const char *path) {
@@ -60,7 +64,7 @@ void analyze_directory(const char *path) {
         return;
     }
 
-    printf("Analyzing directory: %s\n", path); // 현재 경로 출력
+    printf("\nAnalyzing directory: %s\n", path); // 현재 경로 출력
 
     char filepath[MAX_PATH];
     while ((entry = readdir(dp))) {

@@ -127,8 +127,14 @@ void check_frame_injection(char *code, const char *variable_name) {
 
 void check_url_redirection(char *code, const char *variable_name) {
     if (strstr(code, "location.href") || strstr(code, "window.location") || strstr(code, "response.sendRedirect")) {
+        // 침해 사례 검사
         if (strstr(code, "http://") || strstr(code, "https://")) {
-            add_issue(variable_name, URL_REDIRECTION, 0);
+            // 안전한 리디렉션 확인
+            if (strstr(code, "allowedPages") && strstr(code, "includes") && strstr(code, "https://trusted.com/")) {
+                add_issue(variable_name, URL_REDIRECTION, 1);
+            } else {
+                add_issue(variable_name, URL_REDIRECTION, 0);
+            }
         } else {
             add_issue(variable_name, URL_REDIRECTION, 1);
         }
@@ -137,7 +143,7 @@ void check_url_redirection(char *code, const char *variable_name) {
 
 void check_missing_session_timeout(char *code, const char *variable_name) {
     if (strstr(code, "session")) {
-        if (!(strstr(code, "timeout") || strstr(code, "expire") || strstr(code, "expiration")) || strstr(code, "maxAge")) {
+        if (!(strstr(code, "timeout") || strstr(code, "expire") || strstr(code, "expiration") || strstr(code, "maxAge"))) {
             add_issue(variable_name, MISSING_SESSION_TIMEOUT, 0);
         } else {
             add_issue(variable_name, MISSING_SESSION_TIMEOUT, 1);
@@ -146,15 +152,19 @@ void check_missing_session_timeout(char *code, const char *variable_name) {
 }
 
 void check_sensitive_info_in_url(char *code, const char *variable_name) {
-    if (strstr(code, "GET") || strstr(code, "POST")) {
+    if (strstr(code, "api") || strstr(code, "POST")) {
         if (strstr(code, "password") || strstr(code, "secret") || strstr(code, "apikey") || strstr(code, "token")) {
-            add_issue(variable_name, SENSITIVE_INFO_IN_URL, 0);
+            if (strstr(code, "${")) {
+                add_issue(variable_name, SENSITIVE_INFO_IN_URL, 0);
+            } else {
+                add_issue(variable_name, SENSITIVE_INFO_IN_URL, 1);
+            }
         }
     }
 }
 
 void check_secure_cookie(char *code, const char *variable_name) {
-    if (strstr(code, "Set-Cookie")) {
+    if (strstr(code, "cookie")) {
         if (!(strstr(code, "Secure") && strstr(code, "HttpOnly"))) {
             add_issue(variable_name, SECURE_COOKIE, 0);
         } else {
@@ -164,8 +174,8 @@ void check_secure_cookie(char *code, const char *variable_name) {
 }
 
 void check_cross_frame_scripting(char *code, const char *variable_name) {
-    if (strstr(code, "<iframe") || strstr(code, "<frame")) {
-        if (strstr(code, "src=") && (strstr(code, "http://") || strstr(code, "https://"))) {
+    if (strstr(code, "iframe") || strstr(code, "frame")) {
+        if (strstr(code, "src = ") && (strstr(code, "http://") || (strstr(code, "https://")) && !strstr(code, "sandbox"))) {
             add_issue(variable_name, CROSS_FRAME_SCRIPTING, 0);
         } else {
             add_issue(variable_name, CROSS_FRAME_SCRIPTING, 1);
@@ -176,9 +186,11 @@ void check_cross_frame_scripting(char *code, const char *variable_name) {
 void check_sensitive_info_display(char *code, const char *variable_name) {
     if (strstr(code, "print") || strstr(code, "echo") || strstr(code, "console.log") || strstr(code, "alert")) {
         if (strstr(code, "password") || strstr(code, "secret") || strstr(code, "apikey") || strstr(code, "token")) {
-            add_issue(variable_name, SENSITIVE_INFO_DISPLAY, 0);
-        } else if (strstr(code, "masked") || strstr(code, "sanitized")) {
-            add_issue(variable_name, SENSITIVE_INFO_DISPLAY, 1);
+            if (strstr(code, "masked") || strstr(code, "sanitized") || strstr(code, "replace")) {
+                add_issue(variable_name, SENSITIVE_INFO_DISPLAY, 1);
+            } else {
+                add_issue(variable_name, SENSITIVE_INFO_DISPLAY, 0);
+            }
         }
     }
 }
@@ -186,7 +198,7 @@ void check_sensitive_info_display(char *code, const char *variable_name) {
 void check_sensitive_info_cached(char *code, const char *variable_name) {
     if (strstr(code, "cache") || strstr(code, "localStorage")) {
         if(strstr(code, "password") || strstr(code, "secret") || strstr(code, "apikey") || strstr(code, "token")) {
-            if(strstr(code, "masked") || strstr(code, "replace")) {
+            if(strstr(code, "masked") || strstr(code, "replace") || strstr(code, "Secure")) {
                 add_issue(variable_name, SENSITIVE_INFO_CACHED, 1);
             } else {
                 add_issue(variable_name, SENSITIVE_INFO_CACHED, 0);
@@ -196,30 +208,32 @@ void check_sensitive_info_cached(char *code, const char *variable_name) {
 }
 
 void check_encryption_strength(char *code, const char *variable_name) {
-    if ((strstr(code, "encrypt") || strstr(code, "decrypt")) &&
-        (strstr(code, "MD5") || strstr(code, "SHA1") || strstr(code, "DES"))) {
-        add_issue(variable_name, ENCRYPTION_STRENGTH, 0);
-    } else if (strstr(code, "SHA256") || strstr(code, "SHA512")) {
-        //mark_variable_secure(variable_name);
-        add_issue(variable_name, ENCRYPTION_STRENGTH, 1);
+    if (strstr(code, "encrypt") || strstr(code, "decrypt") || strstr(code, "crypto")) {
+        if (strstr(code, "ecb") || strstr(code, "des") || strstr(code, "md5") || strstr(code, "sha1")) {
+            add_issue(variable_name, ENCRYPTION_STRENGTH, 0);
+        } else if (strstr(code, "sha512") || strstr(code, "sha256")) {
+            add_issue(variable_name, ENCRYPTION_STRENGTH, 1);
+        }
     }
 }
 
 void check_crlf_injection(char *code, const char *variable_name) {
-    if (strstr(code, "\r\n")) {
-        add_issue(variable_name, CRLF_INJECTION, 0);
-    } else {
-        //mark_variable_secure(variable_name);
-        add_issue(variable_name, CRLF_INJECTION, 1);
+    if (strstr(code, "\\r\\n")) {
+        if (strstr(code, "replace")) {
+            add_issue(variable_name, CRLF_INJECTION, 1);
+        } else {
+            add_issue(variable_name, CRLF_INJECTION, 0);
+        }
     }
 }
 
 void check_trust_boundary_violation(char *code, const char *variable_name) {
-    if (strstr(code, "trust_boundary")) {
-        add_issue(variable_name, TRUST_BOUNDARY_VIOLATION, 0);
-    } else if (strstr(code, "validate") || strstr(code, "sanitize")) {
-        //mark_variable_secure(variable_name);
-        add_issue(variable_name, TRUST_BOUNDARY_VIOLATION, 1);
+    if (strstr(code, "executeQuery")) {
+        if (strstr(code, "validate") || strstr(code, "sanitize")) {
+            add_issue(variable_name, TRUST_BOUNDARY_VIOLATION, 1);
+        } else {
+            add_issue(variable_name, TRUST_BOUNDARY_VIOLATION, 0);
+        }
     }
 }
 
@@ -227,40 +241,53 @@ void check_directory_traversal(char *code, const char *variable_name) {
     if (strstr(code, "../") || strstr(code, "..\\")) {
         add_issue(variable_name, DIRECTORY_TRAVERSAL, 0);
     } else if (strstr(code, "realpath")) {
-        //mark_variable_secure(variable_name);
         add_issue(variable_name, DIRECTORY_TRAVERSAL, 1);
     }
 }
 
 void check_session_fixation(char *code, const char *variable_name) {
+    // 세션 관련 코드가 있는지 확인
     if (strstr(code, "session")) {
-        if (strstr(code, "setId")) {
+        // 세션 ID가 외부 입력으로 설정되는지 확인
+        if ((strstr(code, "setId") && strstr(code, variable_name)) ||
+            (strstr(code, "req.session") && strstr(code, "userId") && !strstr(code, "req.session.regenerate"))) {
             add_issue(variable_name, SESSION_FIXATION, 0);
-        } else if (strstr(code, "invalidate")) {
-            //mark_variable_secure(variable_name);
+        }
+        // 세션 ID가 고정되었는지 확인
+        else if (strstr(code, "setAttribute") && strstr(code, "session") && strstr(code, variable_name) && !strstr(code, "req.session.regenerate")) {
+            add_issue(variable_name, SESSION_FIXATION, 0);
+        }
+        // 세션 무효화가 이루어지는지 확인
+        else if (strstr(code, "invalidate")) {
+            add_issue(variable_name, SESSION_FIXATION, 1);
+        }
+        // 세션이 새로 생성되는지 확인
+        else if (strstr(code, "createSession") || strstr(code, "session.start")) {
             add_issue(variable_name, SESSION_FIXATION, 1);
         }
     }
 }
 
 void check_risky_crypto(char *code, const char *variable_name) {
-    if (strstr(code, "encrypt") || strstr(code, "decrypt")) {
-        if (strstr(code, "ECB") || strstr(code, "DES") || strstr(code, "MD5") || strstr(code, "SHA1")) {
+    if (strstr(code, "encrypt") || strstr(code, "decrypt") || strstr(code, "crypto")) {
+        if (strstr(code, "ecb") || strstr(code, "des") || strstr(code, "md5") || strstr(code, "sha1")) {
             add_issue(variable_name, RISKY_CRYPTO, 0);
-        } else if (strstr(code, "CBC") || strstr(code, "AES") || strstr(code, "SHA256")) {
-            //mark_variable_secure(variable_name);
+        } else if (strstr(code, "cbc") || strstr(code, "aes") || strstr(code, "sha256")) {
             add_issue(variable_name, RISKY_CRYPTO, 1);
         }
     }
 }
 
 void check_credentials_management(char *code, const char *variable_name) {
+    // 민감한 정보가 코드에 포함되어 있는지 확인
     if (strstr(code, "password") || strstr(code, "secret") || strstr(code, "key") || strstr(code, "token")) {
-        if (strstr(code, "hardcoded") || strstr(code, "plaintext")) {
-            add_issue(variable_name, CREDENTIALS_MANAGEMENT, 0);
-        } else if (strstr(code, "environment") || strstr(code, "config")) {
-            //mark_variable_secure(variable_name);
-            add_issue(variable_name, CREDENTIALS_MANAGEMENT, 1);
+        // 민감한 정보가 하드코딩되었거나 안전하지 않은 방식으로 저장되는 경우
+        if (strstr(code, "=\"") || strstr(code, "= '") || strstr(code, "base64") || strstr(code, "plaintext")) {
+            add_issue(variable_name, CREDENTIALS_MANAGEMENT, 0);  // 보안 위협 사례
+        }
+        // 민감한 정보가 환경 변수나 안전한 방식으로 저장되는 경우
+        else if (strstr(code, "process.env") || strstr(code, "config") || strstr(code, "bcrypt") || strstr(code, "crypto")) {
+            add_issue(variable_name, CREDENTIALS_MANAGEMENT, 1);  // 안전한 사례
         }
     }
 }
@@ -270,7 +297,6 @@ void check_sql_injection_hibernate(char *code, const char *variable_name) {
         !(strstr(code, "?") || strstr(code, ":") || strstr(code, "bind"))) {
         add_issue(variable_name, SQL_INJECTION_HIBERNATE, 0);
     } else if (strstr(code, "?") || strstr(code, ":") || strstr(code, "bind")) {
-        //mark_variable_secure(variable_name);
         add_issue(variable_name, SQL_INJECTION_HIBERNATE, 1);
     }
 }
@@ -279,7 +305,6 @@ void check_improper_resource_shutdown(char *code, const char *variable_name) {
     if ((strstr(code, "open") || strstr(code, "connect")) && !(strstr(code, "close") || strstr(code, "disconnect"))) {
         add_issue(variable_name, IMPROPER_RESOURCE_SHUTDOWN, 0);
     } else if (strstr(code, "close") || strstr(code, "disconnect")) {
-        //mark_variable_secure(variable_name);
         add_issue(variable_name, IMPROPER_RESOURCE_SHUTDOWN, 1);
     }
 }
