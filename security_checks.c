@@ -47,15 +47,6 @@ void add_variable(const char *name) {
     variable_count++;
 }
 
-void mark_variable_secure(const char *name) {
-    for (int i = 0; i < variable_count; i++) {
-        if (strcmp(variables[i].name, name) == 0) {
-            variables[i].is_secure = 1;
-            return;
-        }
-    }
-}
-
 void add_issue(const char *variable_name, SecurityViolation violation, int resolved) {
     if (issue_count >= MAX_VIOLATIONS) {
         fprintf(stderr, "Issue array overflow\n");
